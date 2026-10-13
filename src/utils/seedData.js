@@ -11,13 +11,17 @@ import populateNewCatalog from './populateNewCatalog.js';
 
 export const seedDatabaseIfEmpty = async () => {
   try {
-    // 1. Ensure primary Administrator account: a@gmail.com (Password: 123)
-    let primaryAdmin = await User.findOne({ email: 'a@gmail.com' });
+    // 1. Ensure primary Administrator account: shamilalsalhya@gmail.com
+    const adminEmail = process.env.ADMIN_EMAIL || 'shamilalsalhya@gmail.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'muh@mmedShamil3211';
+
+    // Migrate old a@gmail.com account if exists
+    let primaryAdmin = await User.findOne({ $or: [{ email: adminEmail }, { email: 'a@gmail.com' }] });
     if (!primaryAdmin) {
       primaryAdmin = new User({
         name: 'Super Admin',
-        email: 'a@gmail.com',
-        password: '123',
+        email: adminEmail,
+        password: adminPassword,
         phone: '+91 98765 43210',
         role: 'ADMIN',
         isUser: 'admin',
@@ -25,15 +29,16 @@ export const seedDatabaseIfEmpty = async () => {
         permissions: ['ALL', 'CATALOG_WRITE', 'DISPATCH_MANAGE', 'MERCHANTS_MANAGE', 'SYSTEM_GOVERNANCE'],
       });
       await primaryAdmin.save();
-      console.log('✅ [Admin Account Created]: a@gmail.com (Password: 123)');
+      console.log(`✅ [Admin Account Created]: ${adminEmail}`);
     } else {
-      primaryAdmin.password = '123';
+      primaryAdmin.email = adminEmail;
+      primaryAdmin.password = adminPassword;
       primaryAdmin.role = 'ADMIN';
       primaryAdmin.isUser = 'admin';
       primaryAdmin.status = 'ACTIVE';
       primaryAdmin.permissions = ['ALL', 'CATALOG_WRITE', 'DISPATCH_MANAGE', 'MERCHANTS_MANAGE', 'SYSTEM_GOVERNANCE'];
       await primaryAdmin.save();
-      console.log('✅ [Admin Account Updated]: a@gmail.com (Password: 123)');
+      console.log(`✅ [Admin Account Updated]: ${adminEmail}`);
     }
 
     // Seed Demo Customer if not present
