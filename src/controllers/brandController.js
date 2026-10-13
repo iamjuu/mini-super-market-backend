@@ -1,5 +1,6 @@
 import Brand from '../models/Brand.js';
 import { logActivity } from '../middleware/activityLogger.js';
+import { processSingleImage } from '../config/cloudinary.js';
 
 const slugify = (text) => {
   return text
@@ -58,11 +59,13 @@ export const createBrand = async (req, res, next) => {
       slug = `${slugify(name)}-${count++}`;
     }
 
+    const processedLogo = await processSingleImage(logo, 'shamil_marketplace/brands');
+
     const brand = await Brand.create({
       name: name.trim(),
       slug,
       categoryId: categoryId || null,
-      logo: logo || '',
+      logo: processedLogo || '',
       description: description ? description.trim() : '',
       isActive: isActive !== undefined ? Boolean(isActive) : true,
       status: status || (isActive !== false ? 'ACTIVE' : 'INACTIVE'),
@@ -111,7 +114,9 @@ export const updateBrand = async (req, res, next) => {
     }
 
     if (categoryId !== undefined) brand.categoryId = categoryId;
-    if (logo !== undefined) brand.logo = logo;
+    if (logo !== undefined) {
+      brand.logo = await processSingleImage(logo, 'shamil_marketplace/brands');
+    }
     if (description !== undefined) brand.description = description.trim();
     if (isActive !== undefined) {
       brand.isActive = Boolean(isActive);

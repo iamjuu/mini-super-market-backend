@@ -1,5 +1,6 @@
 import Category from '../models/Category.js';
 import { logActivity } from '../middleware/activityLogger.js';
+import { processSingleImage } from '../config/cloudinary.js';
 
 const slugify = (text) => {
   return text
@@ -71,12 +72,14 @@ export const createCategory = async (req, res, next) => {
       slug = `${slugify(name)}-${count++}`;
     }
 
+    const uploadedImage = await processSingleImage(image, 'shamil_marketplace/categories');
+
     const category = await Category.create({
       name: name.trim(),
       slug,
       description: description ? description.trim() : '',
       icon: icon || 'Boxes',
-      image: image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80',
+      image: uploadedImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80',
       deliveryPrice: Number(deliveryPrice) || 30,
       isActive: isActive !== undefined ? Boolean(isActive) : true,
       status: status || (isActive !== false ? 'ACTIVE' : 'INACTIVE'),
@@ -124,7 +127,9 @@ export const updateCategory = async (req, res, next) => {
 
     if (description !== undefined) category.description = description.trim();
     if (icon) category.icon = icon;
-    if (image !== undefined) category.image = image;
+    if (image !== undefined) {
+      category.image = await processSingleImage(image, 'shamil_marketplace/categories');
+    }
     if (deliveryPrice !== undefined) category.deliveryPrice = Number(deliveryPrice);
     if (isActive !== undefined) {
       category.isActive = Boolean(isActive);

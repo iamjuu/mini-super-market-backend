@@ -1,5 +1,6 @@
 import Offer from '../models/Offer.js';
 import { logActivity } from '../middleware/activityLogger.js';
+import { processSingleImage } from '../config/cloudinary.js';
 
 export const getOffers = async (req, res, next) => {
   try {
@@ -34,13 +35,14 @@ export const createOffer = async (req, res, next) => {
     }
 
     const offerCount = await Offer.countDocuments();
+    const processedImage = await processSingleImage(image, 'shamil_marketplace/offers');
 
     const offer = await Offer.create({
       title: title.trim(),
       description: description ? description.trim() : '',
       actualPrice: actualPrice !== undefined ? Number(actualPrice) : Number(offerPrice),
       offerPrice: Number(offerPrice),
-      image: image || 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=500&auto=format&fit=crop&q=80',
+      image: processedImage || 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=500&auto=format&fit=crop&q=80',
       tagBadge: tagBadge || '⭐ Deal of the Day',
       isActive: isActive !== undefined ? Boolean(isActive) : true,
       status: status || (isActive !== false ? 'ACTIVE' : 'INACTIVE'),
@@ -81,7 +83,9 @@ export const updateOffer = async (req, res, next) => {
     if (description !== undefined) offer.description = description.trim();
     if (actualPrice !== undefined) offer.actualPrice = Number(actualPrice);
     if (offerPrice !== undefined) offer.offerPrice = Number(offerPrice);
-    if (image !== undefined) offer.image = image;
+    if (image !== undefined) {
+      offer.image = await processSingleImage(image, 'shamil_marketplace/offers');
+    }
     if (tagBadge !== undefined) offer.tagBadge = tagBadge;
     if (order !== undefined) offer.order = Number(order);
     if (isActive !== undefined) {

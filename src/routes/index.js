@@ -16,6 +16,7 @@ import notificationRoutes from './notificationRoutes.js';
 import platformRoutes from './platformRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import userRoutes from './userRoutes.js';
+import uploadRoutes from './uploadRoutes.js';
 
 const router = express.Router();
 
@@ -79,5 +80,9 @@ router.use('/master-admin', platformRoutes);
 // 11. User specific endpoints (/api/user/profile, /api/user/addresses, /api/user/cart, /api/user/orders)
 router.use('/user', userRoutes);
 router.use('/user/cart', cartRoutes);
+
+// 12. Cloudinary Media Upload endpoints
+router.use('/upload', uploadRoutes);
+router.use('/admin/upload', uploadRoutes);
 
 export default router;

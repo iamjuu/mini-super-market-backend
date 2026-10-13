@@ -4,6 +4,7 @@ import Category from '../models/Category.js';
 import Subcategory from '../models/Subcategory.js';
 import Brand from '../models/Brand.js';
 import { logActivity } from '../middleware/activityLogger.js';
+import { processIncomingImages } from '../config/cloudinary.js';
 
 const slugify = (text) => {
   return text
@@ -171,7 +172,8 @@ export const createProduct = async (req, res, next) => {
       if (b) bName = b.name;
     }
 
-    const imageList = Array.isArray(images) && images.length > 0 ? images : (image ? [image] : []);
+    const rawImageList = Array.isArray(images) && images.length > 0 ? images : (image ? [image] : []);
+    const imageList = await processIncomingImages(rawImageList, 'shamil_marketplace/products');
 
     const product = await Product.create({
       name: name.trim(),
@@ -299,10 +301,12 @@ export const updateProduct = async (req, res, next) => {
     if (unit !== undefined) product.unit = unit;
     if (description !== undefined) product.description = description.trim();
     if (images !== undefined && Array.isArray(images)) {
-      product.images = images;
-      if (images.length > 0) product.image = images[0];
+      const processedImages = await processIncomingImages(images, 'shamil_marketplace/products');
+      product.images = processedImages;
+      if (processedImages.length > 0) product.image = processedImages[0];
     } else if (image !== undefined) {
-      product.image = image;
+      const processedSingle = await processIncomingImages([image], 'shamil_marketplace/products');
+      product.image = processedSingle[0] || image;
     }
 
     if (deliveryPrice !== undefined) {
