@@ -68,27 +68,28 @@ app.use((req, res) => {
 // Global Error Handler
 app.use(errorHandler);
 
-// Create HTTP server & bind Socket.io
-const httpServer = http.createServer(app);
-initSocket(httpServer, CLIENT_URL);
+// Only start standalone HTTP server when running standalone (not in Vercel serverless)
+if (!process.env.VERCEL) {
+  const httpServer = http.createServer(app);
+  initSocket(httpServer, CLIENT_URL);
 
-// Connect to Database, Seed Data, and Start Server
-const startServer = async () => {
-  try {
-    await connectDB();
-    await seedDatabaseIfEmpty();
+  const startServer = async () => {
+    try {
+      await connectDB();
+      await seedDatabaseIfEmpty();
 
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 [Server Ready]: Listening on http://localhost:${PORT}`);
-      console.log(`📡 [CORS Origin]: Accepting requests from ${CLIENT_URL}`);
-      console.log(`🍃 [Database]: Local MongoDB connected & collections initialized`);
-    });
-  } catch (err) {
-    console.error('❌ Failed to start server:', err.message);
-    process.exit(1);
-  }
-};
+      httpServer.listen(PORT, () => {
+        console.log(`🚀 [Server Ready]: Listening on http://localhost:${PORT}`);
+        console.log(`📡 [CORS Origin]: Accepting requests from ${CLIENT_URL}`);
+        console.log(`🍃 [Database]: MongoDB connected & collections initialized`);
+      });
+    } catch (err) {
+      console.error('❌ Failed to start server:', err.message);
+      process.exit(1);
+    }
+  };
 
-startServer();
+  startServer();
+}
 
 export default app;
