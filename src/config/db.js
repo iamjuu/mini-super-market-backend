@@ -16,7 +16,12 @@ export const connectDB = async () => {
   }
 
   if (!cached.promise) {
-    const mongoUri = process.env.MONGODB_URI || DEFAULT_ATLAS_URI;
+    let mongoUri = process.env.MONGODB_URI;
+    // On Vercel, localhost/127.0.0.1 does not exist, so fallback to MongoDB Atlas
+    if (!mongoUri || (process.env.VERCEL && (mongoUri.includes('127.0.0.1') || mongoUri.includes('localhost')))) {
+      mongoUri = DEFAULT_ATLAS_URI;
+    }
+
     const opts = {
       autoIndex: false,
       serverSelectionTimeoutMS: 8000,

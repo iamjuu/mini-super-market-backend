@@ -59,7 +59,10 @@ app.get('/', (req, res) => {
 app.get('/api/health', async (req, res) => {
   let dbStatus = 'disconnected';
   let dbError = null;
-  const rawUri = process.env.MONGODB_URI || 'default_atlas_uri';
+  let rawUri = process.env.MONGODB_URI;
+  if (!rawUri || (process.env.VERCEL && (rawUri.includes('127.0.0.1') || rawUri.includes('localhost')))) {
+    rawUri = 'DEFAULT_ATLAS_URI';
+  }
   const maskedUri = rawUri ? rawUri.replace(/:([^@]+)@/, ':****@') : 'none';
 
   try {
