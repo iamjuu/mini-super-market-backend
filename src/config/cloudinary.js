@@ -34,9 +34,11 @@ export const uploadToCloudinary = async (fileInput, folder = 'shamil_marketplace
   try {
     const uploadOptions = {
       folder,
-      resource_type: 'auto',
+      resource_type: 'image',
       transformation: [
-        { quality: 'auto', fetch_format: 'auto' }, // Automatically delivers best compression & format (WebP/AVIF)
+        { width: 1400, height: 1400, crop: 'limit' }, // Limit oversized dimensions
+        { quality: 'auto:good' },                     // Intelligent perceptual compression
+        { fetch_format: 'auto' },                     // Deliver modern WebP/AVIF automatically
       ],
       ...customOptions,
     };
