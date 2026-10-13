@@ -17,12 +17,22 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 // Core Middlewares
 app.use(
   cors({
-    origin: [CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
   })
 );
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// Ensure Database is connected for serverless environments (e.g. Vercel)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('Database connection failed on request:', err.message);
+  }
+  next();
+});
 
 // Root Route
 app.get('/', (req, res) => {
